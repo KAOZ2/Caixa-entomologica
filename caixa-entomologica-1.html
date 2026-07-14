@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caixa Entomológica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #16231a;
+    --bg-vignette: #0e1712;
+    --paper: #ece3cf;
+    --paper-dark: #ddd0ac;
+    --wood: #2a1f16;
+    --wood-light: #3a2c1d;
+    --ink: #241c14;
+    --brass: #b8894a;
+    --brass-bright: #d6a866;
+    --glass: #6f8f6a;
+    --danger: #b1453a;
+    --success: #4c7a4f;
+    --muted: #7c7364;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 50% -10%, #24352a 0%, var(--bg) 55%, var(--bg-vignette) 100%);
+    color: var(--paper);
+    font-family:'EB Garamond', serif;
+    min-height:100vh;
+    padding: 28px 16px 60px;
+  }
+  h1,h2,h3,.display{font-family:'Cormorant Garamond', serif;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  .wrap{max-width: 980px; margin: 0 auto;}
+
+  header.top{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom: 1px solid rgba(184,137,74,0.35);
+    padding-bottom: 14px; margin-bottom: 26px; flex-wrap:wrap; gap:14px;
+  }
+  header.top .title-block{display:flex; flex-direction:column;}
+  header.top .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.18em;
+    text-transform:uppercase; color: var(--brass-bright); margin-bottom:4px;
+  }
+  header.top h1{font-size: 34px; font-weight:700; margin:0; letter-spacing:.01em;}
+  header.top h1 em{font-style:italic; color:var(--brass-bright); font-weight:600;}
+
+  .balance-box{
+    text-align:right;
+  }
+  .balance-box .label{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:2px;}
+  .balance-box .value{font-size:30px; font-weight:600; color:#e9d9a9;}
+  .balance-box .rate{font-size:12.5px; color: var(--glass); margin-top:2px;}
+
+  .panel{
+    background: linear-gradient(180deg, var(--wood-light), var(--wood));
+    border:1px solid rgba(184,137,74,0.25);
+    border-radius:6px;
+    padding:20px;
+    margin-bottom:22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .panel h2{
+    font-size:21px; margin:0 0 4px; color:#f1e5c5; font-weight:700;
+    display:flex; align-items:center; gap:10px;
+  }
+  .panel .sub{font-size:13px; color:var(--muted); margin:0 0 16px; font-style:italic;}
+
+  /* Capture area */
+  .capture-row{display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;}
+  .capture-btn{
+    background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+    color: var(--ink); border:none; border-radius:5px;
+    font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:14px;
+    letter-spacing:.06em; text-transform:uppercase;
+    padding:16px 22px; cursor:pointer;
+    box-shadow: 0 4px 0 #7c5a2c, 0 6px 10px rgba(0,0,0,0.35);
+    transition: transform .08s ease;
+  }
+  .capture-btn:active{transform: translateY(3px); box-shadow: 0 1px 0 #7c5a2c, 0 2px 6px rgba(0,0,0,0.3);}
+  .capture-btn:disabled{
+    background:#5a5346; color:#948c78; cursor:not-allowed;
+    box-shadow: 0 4px 0 #3a352b;
+  }
+  .capture-hint{font-size:12.5px; color:var(--muted); margin-top:10px; max-width:340px;}
+
+  /* Specimen card (currently held insect) */
+  .specimen-card{
+    background: var(--paper);
+    color: var(--ink);
+    border-radius:6px;
+    padding:16px 18px;
+    display:flex; gap:16px; align-items:center;
+    flex:1; min-width:280px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    position:relative;
+  }
+  .specimen-emoji{font-size:44px; line-height:1;}
+  .specimen-info{width:100%;}
+  .specimen-info .name{font-weight:600; font-size:18px; font-family:'Cormorant Garamond', serif;}
+  .specimen-info .order-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:#6b6248; margin-top:2px;
+  }
+  .specimen-info .rarity-tag{
+    display:inline-block; margin-top:6px; font-size:11px; font-family:'IBM Plex Mono', monospace;
+    padding:2px 8px; border-radius:10px; color:#fff;
+  }
+
+  .pot-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:10px; margin-top:14px;
+  }
+  .pot-btn{
+    background: rgba(0,0,0,0.18);
+    border:1px solid rgba(184,137,74,0.3);
+    border-radius:5px; color:var(--paper);
+    padding:10px 8px; cursor:pointer; text-align:center;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .pot-btn:hover{border-color: var(--brass-bright); background: rgba(184,137,74,0.12);}
+  .jar-icon{
+    width:30px; height:36px; border-radius:4px 4px 8px 8px; position:relative;
+    border:2px solid rgba(255,255,255,0.25);
+  }
+  .jar-icon::before{
+    content:''; position:absolute; top:-6px; left:6px; right:6px; height:6px;
+    background:#8a7248; border-radius:2px 2px 0 0;
+  }
+
+  .feedback{
+    margin-top:14px; padding:10px 14px; border-radius:4px; font-size:14px;
+    font-family:'IBM Plex Mono', monospace; display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.ok{background:rgba(76,122,79,0.25); color:#bfe3c0; border:1px solid var(--success);}
+  .feedback.bad{background:rgba(177,69,58,0.25); color:#f0bcb6; border:1px solid var(--danger);}
+
+  /* Mounting - alfinetar + patas + barra de tempo */
+  .mount-timer{margin-top:10px;}
+  .mount-timer-track{height:8px; border-radius:4px; background:rgba(36,28,20,0.15); overflow:hidden;}
+  .mount-timer-fill{height:100%; width:100%; background:var(--brass); transition:width .2s linear, background .2s;}
+  .mount-timer-fill.warn{background:var(--danger);}
+  .mount-timer-text{font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:#5a5342; margin-top:4px;}
+
+  .pin-row{
+    position:relative; display:flex; align-items:center; justify-content:space-between;
+    gap:24px; padding:14px 16px; margin-top:8px;
+    background:rgba(36,28,20,0.04); border-radius:6px; border:1px dashed rgba(36,28,20,0.15);
+  }
+  .pin-tray{width:70px; height:70px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .pin-drag{
+    width:54px; height:54px; border-radius:50%;
+    background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+    display:flex; align-items:center; justify-content:center; font-size:26px;
+    cursor:grab; touch-action:none; user-select:none;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  }
+  .pin-drag.placed{cursor:default; box-shadow:0 0 0 3px rgba(76,122,79,0.55);}
+  .pin-target{
+    width:78px; height:78px; border-radius:50%; border:3px dashed rgba(36,28,20,0.3);
+    display:flex; align-items:center; justify-content:center; font-size:32px;
+    background:rgba(0,0,0,0.03); transition: border-color .15s, background .15s; flex-shrink:0;
+  }
+  .pin-target.hover{border-color:var(--success); background:rgba(76,122,79,0.15);}
+  .pin-target.done{border-style:solid; border-color:var(--success); background:rgba(76,122,79,0.2);}
+  .pin-target.miss{border-color:var(--danger); background:rgba(177,69,58,0.14);}
+
+  .mount-parts{display:flex; flex-direction:column; gap:14px; margin-top:12px;}
+  .mount-part{
+    background: rgba(36,28,20,0.04);
+    border:1px solid rgba(36,28,20,0.12);
+    border-radius:6px; padding:10px 12px;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .mount-part.locked{
+    background: rgba(76,122,79,0.12);
+    border-color: var(--success);
+  }
+  .mount-part.shake{ animation: shake .32s ease; border-color: var(--danger); }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  .mount-part-head{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;
+  }
+  .mount-part-label{font-weight:600; font-size:13.5px; display:flex; align-items:center; gap:6px;}
+  .mount-part-angle{font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:#5a5342;}
+  .mount-part.locked .mount-part-angle{color:var(--success); font-weight:600;}
+  .slider-track{
+    position:relative; height:26px; display:flex; align-items:center;
+  }
+  .slider-track .zone{
+    position:absolute; top:50%; transform:translateY(-50%);
+    height:12px; border-radius:6px;
+    background: rgba(76,122,79,0.35);
+    border: 1px solid rgba(76,122,79,0.6);
+    pointer-events:none;
+  }
+  .slider-track input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:26px; background:transparent; position:relative; z-index:2; margin:0;
+    cursor:pointer;
+  }
+  .slider-track input[type=range]::-webkit-slider-runnable-track{
+    height:4px; background: rgba(36,28,20,0.25); border-radius:2px;
+  }
+  .slider-track input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; margin-top:-8px;
+    width:20px; height:20px; border-radius:50%;
+    background: var(--brass); border:2px solid #6b4c22;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  }
+  .slider-track input[type=range]::-moz-range-track{
+    height:4px; background: rgba(36,28,20,0.25); border-radius:2px;
+  }
+  .slider-track input[type=range]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%;
+    background: var(--brass); border:2px solid #6b4c22;
+  }
+  .mount-part input[type=range]:disabled::-webkit-slider-thumb{background:var(--success);}
+  .mount-part-actions{display:flex; justify-content:flex-end; margin-top:6px;}
+  .fixar-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
+    padding:5px 12px; border-radius:4px; border:1px solid var(--brass); background:transparent;
+    color:#4a3a20; cursor:pointer; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .fixar-btn:disabled{opacity:.55; cursor:default;}
+  .mount-summary{font-size:12.5px; color:#5a5342; margin-top:2px;}
+
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:4px; border:none; cursor:pointer;
+    letter-spacing:.03em;
+  }
+  .btn-brass{background:var(--brass); color:var(--ink);}
+  .btn-brass:hover{background:var(--brass-bright);}
+  .btn-brass:disabled{background:#8a8370; color:#c9c3b3; cursor:not-allowed;}
+  .btn-outline{background:transparent; border:1px solid var(--brass); color:var(--brass-bright);}
+
+  /* Estufa */
+  .estufa-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px;}
+  .drying-card{
+    background: var(--paper); color:var(--ink); border-radius:6px; padding:14px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.28);
+  }
+  .drying-card .head{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
+  .drying-card .head .emoji{font-size:28px;}
+  .drying-card .name{font-weight:600; font-size:15.5px;}
+  .progress-track{
+    background: rgba(36,28,20,0.15); border-radius:6px; height:8px; overflow:hidden; margin:8px 0;
+  }
+  .progress-fill{background: var(--glass); height:100%; transition: width .5s linear;}
+  .timer-text{font-family:'IBM Plex Mono', monospace; font-size:12px; color:#5a5342;}
+  .timer-text.warn{color:var(--danger); font-weight:600;}
+  .empty-note{color:var(--muted); font-style:italic; font-size:14px;}
+
+  /* Caixa entomologica */
+  .case-frame{
+    background:#1c140d; border:10px solid var(--wood); border-radius:4px; padding:18px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+  }
+  .case-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:14px;
+  }
+  .pinned{
+    background: var(--paper); color:var(--ink); border-radius:4px; padding:10px 8px 8px;
+    text-align:center; position:relative;
+  }
+  .pinned .emoji{font-size:30px; display:block;}
+  .pinned .pinline{position:absolute; top:2px; left:50%; transform:translateX(-50%); width:2px; height:10px; background:var(--brass);}
+  .pinned .tag{
+    margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:#6b6248;
+    border-top:1px dashed #b8a97e; padding-top:4px; line-height:1.3;
+  }
+  .pinned .rate{color:var(--success); font-weight:600;}
+
+  .footer-note{text-align:center; color:var(--muted); font-size:12px; margin-top:30px; font-style:italic;}
+
+  /* Tabs */
+  .tabs{
+    display:flex; gap:6px; margin-bottom:22px; border-bottom:1px solid rgba(184,137,74,0.25);
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    background:transparent; border:none; cursor:pointer;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--muted);
+    padding:10px 18px; border-bottom:2px solid transparent;
+    display:flex; align-items:center; gap:8px;
+    position:relative; transition: color .15s ease;
+  }
+  .tab-btn:hover{color:var(--paper);}
+  .tab-btn.active{color:var(--brass-bright); border-bottom-color: var(--brass-bright);}
+  .tab-badge{
+    background:var(--brass); color:var(--ink); font-size:10.5px; font-weight:600;
+    border-radius:9px; padding:1px 7px; min-width:16px; text-align:center;
+  }
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* Loja */
+  .shop-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:14px;}
+  .shop-card{
+    background: var(--paper); color:var(--ink); border-radius:6px; padding:16px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.28); display:flex; flex-direction:column; gap:8px;
+  }
+  .shop-card .shop-head{display:flex; align-items:center; gap:10px;}
+  .shop-card .shop-emoji{font-size:28px;}
+  .shop-card .shop-name{font-weight:600; font-size:16.5px; font-family:'Cormorant Garamond', serif;}
+  .shop-card .shop-desc{font-size:12.5px; color:#5a5342; line-height:1.4;}
+  .shop-card .shop-level{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#6b6248;
+    background:rgba(36,28,20,0.06); border-radius:10px; padding:2px 8px; align-self:flex-start;
+  }
+  .shop-card .shop-buy{margin-top:4px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .shop-card .shop-cost{font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; color:#3a3020;}
+  .shop-card.maxed .shop-cost{color: var(--success);}
+
+  /* Codigos */
+  .code-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .code-input{
+    flex:1; min-width:220px; background:var(--paper); color:var(--ink);
+    border:1px solid rgba(184,137,74,0.5); border-radius:4px; padding:11px 14px;
+    font-size:14px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .code-input::placeholder{text-transform:none; color:#8a8370; letter-spacing:normal;}
+  .code-list-title{
+    margin-top:22px; margin-bottom:8px; font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+  }
+  .code-list{display:flex; flex-direction:column; gap:8px;}
+  .code-chip{
+    background: rgba(0,0,0,0.18); border:1px solid rgba(184,137,74,0.25); border-radius:4px;
+    padding:9px 12px; display:flex; justify-content:space-between; align-items:center;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .code-chip .code-name{color:#e9d9a9; letter-spacing:.05em;}
+  .code-chip .code-reward{color: var(--glass);}
+
+  @media (max-width:520px){
+    header.top h1{font-size:26px;}
+    .balance-box .value{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title-block">
+      <div class="eyebrow">Estação de campo &middot; registro nº 0347</div>
+      <h1>Caixa <em>Entomológica</em></h1>
+    </div>
+    <div class="balance-box">
+      <div class="label">Saldo do naturalista</div>
+      <div class="value mono" id="balance">R$ 0,00</div>
+      <div class="rate mono" id="rate">+R$ 0,00/s em coleção</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="captura">🔎 Captura</button>
+    <button class="tab-btn" data-tab="estufa">🔥 Estufa <span class="tab-badge" id="estufaBadge">0</span></button>
+    <button class="tab-btn" data-tab="caixa">🗄️ Caixa entomológica <span class="tab-badge" id="caixaBadge">0</span></button>
+    <button class="tab-btn" data-tab="loja">🛒 Loja</button>
+    <button class="tab-btn" data-tab="codigos">🎟️ Códigos</button>
+  </nav>
+
+  <!-- CAPTURA -->
+  <div class="tab-panel active" id="tab-captura">
+    <section class="panel">
+      <h2>🔎 Campo de captura</h2>
+      <p class="sub">Clique para tentar capturar um espécime. Identifique a ordem correta antes de guardá-lo no álcool.</p>
+      <div class="capture-row">
+        <div>
+          <button class="capture-btn" id="captureBtn">Capturar inseto</button>
+          <div class="capture-hint" id="captureHint">Errar o pote de álcool perde o inseto. Cada ordem tem seu próprio pote — observe a etiqueta antes de decidir.</div>
+          <div class="feedback" id="captureFeedback"></div>
+        </div>
+        <div id="specimenSlot" style="flex:1; min-width:280px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ESTUFA -->
+  <div class="tab-panel" id="tab-estufa">
+    <section class="panel">
+      <h2>🔥 Estufa de secagem</h2>
+      <p class="sub" id="estufaSub">Após a montagem entomológica, o espécime seca por 1 hora. Retire em até 24h após pronto, ou ele se perde.</p>
+      <div class="estufa-grid" id="estufaGrid"><div class="empty-note">Nenhum espécime na estufa no momento.</div></div>
+    </section>
+  </div>
+
+  <!-- CAIXA ENTOMOLOGICA -->
+  <div class="tab-panel" id="tab-caixa">
+    <section class="panel">
+      <h2>🗄️ Caixa entomológica</h2>
+      <p class="sub">Sua coleção exposta. Cada espécime rende dinheiro por segundo, de acordo com sua raridade.</p>
+      <div class="case-frame">
+        <div class="case-grid" id="caseGrid"><div class="empty-note">A caixa ainda está vazia.</div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- LOJA -->
+  <div class="tab-panel" id="tab-loja">
+    <section class="panel">
+      <h2>🛒 Loja do naturalista</h2>
+      <p class="sub">Invista o dinheiro da coleção em equipamento melhor. Os preços sobem a cada compra.</p>
+      <div class="shop-grid" id="shopGrid"></div>
+    </section>
+  </div>
+
+  <!-- CODIGOS -->
+  <div class="tab-panel" id="tab-codigos">
+    <section class="panel">
+      <h2>🎟️ Códigos de campo</h2>
+      <p class="sub">Resgate códigos de expedição para ganhar bônus. Cada código só pode ser usado uma vez.</p>
+      <div class="code-row">
+        <input type="text" id="codeInput" class="code-input mono" placeholder="Digite o código aqui" autocomplete="off" spellcheck="false">
+        <button class="btn btn-brass" id="redeemBtn">Resgatar</button>
+      </div>
+      <div class="feedback" id="codeFeedback"></div>
+      <div class="code-list-title">Códigos já resgatados</div>
+      <div class="code-list" id="codeList"><div class="empty-note">Nenhum código resgatado ainda.</div></div>
+    </section>
+  </div>
+
+  <div class="footer-note">Um jogo de coleta e paciência — o tempo de secagem corre mesmo com a aba fechada.</div>
+</div>
+
+<script>
+(function(){
+  const ORDERS = {
+    coleoptera:  {label:'Coleoptera',  desc:'besouros'},
+    lepidoptera: {label:'Lepidoptera', desc:'borboletas e mariposas'},
+    diptera:     {label:'Diptera',     desc:'moscas e mosquitos'},
+    hymenoptera: {label:'Hymenoptera', desc:'formigas, abelhas e vespas'},
+    orthoptera:  {label:'Orthoptera',  desc:'grilos e gafanhotos'},
+    hemiptera:   {label:'Hemiptera',   desc:'percevejos e cigarras'}
+  };
+
+  const RARITY = {
+    comum:    {label:'Comum',    weight:50, rate:0.05, color:'#7c8a6f', tolerance:46, mountTimeMs:30000},
+    incomum:  {label:'Incomum',  weight:30, rate:0.15, color:'#4779a8', tolerance:36, mountTimeMs:24000},
+    raro:     {label:'Raro',     weight:15, rate:0.40, color:'#7a4fa3', tolerance:28, mountTimeMs:18000},
+    epico:    {label:'Épico',    weight:4,  rate:1.00, color:'#b3771f', tolerance:20, mountTimeMs:13000},
+    lendario: {label:'Lendário', weight:1,  rate:3.00, color:'#a3352b', tolerance:14, mountTimeMs:9000}
+  };
+
+  const SPECIES = [
+    {name:'Joaninha', order:'coleoptera', rarity:'comum', emoji:'🐞'},
+    {name:'Besouro-rola-bosta', order:'coleoptera', rarity:'comum', emoji:'🪲'},
+    {name:'Fura-madeira', order:'coleoptera', rarity:'incomum', emoji:'🪲'},
+    {name:'Besouro-rinoceronte', order:'coleoptera', rarity:'raro', emoji:'🪲'},
+    {name:'Besouro-tigre-dourado', order:'coleoptera', rarity:'epico', emoji:'🪲'},
+
+    {name:'Borboleta-branca', order:'lepidoptera', rarity:'comum', emoji:'🦋'},
+    {name:'Mariposa-cinza', order:'lepidoptera', rarity:'comum', emoji:'🦋'},
+    {name:'Borboleta-monarca', order:'lepidoptera', rarity:'incomum', emoji:'🦋'},
+    {name:'Mariposa-da-seda', order:'lepidoptera', rarity:'incomum', emoji:'🦋'},
+    {name:'Borboleta-azul-morpho', order:'lepidoptera', rarity:'raro', emoji:'🦋'},
+    {name:'Mariposa-imperador', order:'lepidoptera', rarity:'epico', emoji:'🦋'},
+    {name:'Borboleta-88', order:'lepidoptera', rarity:'lendario', emoji:'🦋'},
+
+    {name:'Mosca-doméstica', order:'diptera', rarity:'comum', emoji:'🪰'},
+    {name:'Pernilongo', order:'diptera', rarity:'comum', emoji:'🦟'},
+    {name:'Mosca-das-frutas', order:'diptera', rarity:'comum', emoji:'🪰'},
+    {name:'Mutuca', order:'diptera', rarity:'incomum', emoji:'🪰'},
+
+    {name:'Formiga-saúva', order:'hymenoptera', rarity:'comum', emoji:'🐜'},
+    {name:'Abelha-europeia', order:'hymenoptera', rarity:'incomum', emoji:'🐝'},
+    {name:'Vespa-papeleira', order:'hymenoptera', rarity:'incomum', emoji:'🐝'},
+    {name:'Mamangava', order:'hymenoptera', rarity:'raro', emoji:'🐝'},
+    {name:'Formiga-rainha-cortadeira', order:'hymenoptera', rarity:'epico', emoji:'🐜'},
+
+    {name:'Grilo-doméstico', order:'orthoptera', rarity:'comum', emoji:'🦗'},
+    {name:'Gafanhoto-verde', order:'orthoptera', rarity:'comum', emoji:'🦗'},
+    {name:'Esperança', order:'orthoptera', rarity:'incomum', emoji:'🦗'},
+    {name:'Gafanhoto-gigante', order:'orthoptera', rarity:'raro', emoji:'🦗'},
+
+    {name:'Percevejo-verde', order:'hemiptera', rarity:'comum', emoji:'🛡️'},
+    {name:'Percevejo-marrom', order:'hemiptera', rarity:'comum', emoji:'🛡️'},
+    {name:'Cigarra', order:'hemiptera', rarity:'incomum', emoji:'🛡️'},
+    {name:'Percevejo-arlequim', order:'hemiptera', rarity:'raro', emoji:'🛡️'}
+  ];
+
+  const DRY_MS = 60 * 60 * 1000;        // 1 hora
+  const MIN_DRY_MS = 15 * 60 * 1000;    // 15 minutos, piso da secagem
+  const EXPIRE_MS = 24 * 60 * 60 * 1000; // 24 horas extras
+  const BASE_CAPTURE_COOLDOWN_MS = 2500;
+  const BASE_CAPTURE_COST = 8;
+  const BASE_ESTUFA_CAPACITY = 3;
+  const ANGLE_MAX = 180;
+  const LEG_DEFS = [
+    {key:'patasFrontais', label:'Patas frontais', icon:'🦵'},
+    {key:'patasMedianas', label:'Patas medianas', icon:'🦵'},
+    {key:'patasTraseiras', label:'Patas traseiras', icon:'🦵'}
+  ];
+
+  let state = {
+    balance: 20,
+    pending: null,   // insect awaiting sorting/mounting {id,name,order,rarity,emoji,stage,mount}
+    drying: [],      // {id,name,order,rarity,emoji,dryReadyAt,expireAt,dryDurationMs}
+    collection: [],  // {id,name,order,rarity,emoji,addedAt}
+    shop: { estufa: 0, rede: 0, treino: 0, secagem: 0 },
+    bonusEstufaSlots: 0,
+    bonusDryReductionMs: 0,
+    redeemedCodes: [],
+    lastTick: Date.now()
+  };
+
+  // ---------- Loja ----------
+  function fmtMoneyStatic(v){
+    return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  }
+
+  function getEstufaCapacity(){ return BASE_ESTUFA_CAPACITY + state.shop.estufa + (state.bonusEstufaSlots||0); }
+  function getCaptureCostForLevel(lvl){ return Math.max(1, BASE_CAPTURE_COST - lvl); }
+  function getCaptureCost(){ return getCaptureCostForLevel(state.shop.rede); }
+  function getCooldownForLevel(lvl){ return Math.max(600, BASE_CAPTURE_COOLDOWN_MS - lvl*200); }
+  function getCaptureCooldown(){ return getCooldownForLevel(state.shop.treino); }
+  function getDryTimeForLevel(lvl){
+    return Math.max(MIN_DRY_MS, DRY_MS - lvl*5*60*1000 - (state.bonusDryReductionMs||0));
+  }
+  function getDryTime(){ return getDryTimeForLevel(state.shop.secagem); }
+
+  const SHOP_ITEMS = {
+    estufa: {
+      emoji: '🏗️', name: 'Ampliar estufa',
+      desc: (lvl)=> `Aumenta o número de espécimes que podem secar ao mesmo tempo. Vagas atuais: ${BASE_ESTUFA_CAPACITY + lvl}.`,
+      maxLevel: 12,
+      baseCost: 120, growth: 1.7
+    },
+    rede: {
+      emoji: '🥅', name: 'Rede reforçada',
+      desc: (lvl)=> `Reduz o custo de cada captura. Custo atual: ${fmtMoneyStatic(getCaptureCostForLevel(lvl))}.`,
+      maxLevel: BASE_CAPTURE_COST - 1,
+      baseCost: 90, growth: 1.55
+    },
+    treino: {
+      emoji: '🥾', name: 'Treino de campo',
+      desc: (lvl)=> `Reduz o tempo de espera entre capturas. Espera atual: ${(getCooldownForLevel(lvl)/1000).toFixed(1)}s.`,
+      maxLevel: 8,
+      baseCost: 70, growth: 1.6
+    },
+    secagem: {
+      emoji: '☀️', name: 'Estufa ventilada',
+      desc: (lvl)=> `Reduz o tempo de secagem em 5min por nível. Tempo atual: ${Math.round(getDryTimeForLevel(lvl)/60000)}min.`,
+      maxLevel: Math.floor((DRY_MS - MIN_DRY_MS) / (5*60*1000)),
+      baseCost: 100, growth: 1.65
+    }
+  };
+
+  function shopUpgradeCost(key){
+    const item = SHOP_ITEMS[key];
+    const lvl = state.shop[key];
+    return Math.round(item.baseCost * Math.pow(item.growth, lvl));
+  }
+
+  function buyUpgrade(key){
+    const item = SHOP_ITEMS[key];
+    const lvl = state.shop[key];
+    if(lvl >= item.maxLevel) return;
+    const cost = shopUpgradeCost(key);
+    if(state.balance < cost) return;
+    state.balance -= cost;
+    state.shop[key] = lvl + 1;
+    save();
+    renderShop();
+    renderBalance();
+    renderSpecimenSlot();
+    renderEstufa();
+    updateCaptureBtn();
+  }
+
+  // ---------- Códigos ----------
+  const CODES = {
+    BEMVINDANATUREZA: {
+      reward: '+R$ 50,00',
+      apply(){ state.balance += 50; }
+    },
+    CACADORDEINSETOS: {
+      reward: '+R$ 120,00',
+      apply(){ state.balance += 120; }
+    },
+    ESTUFAEXTRA: {
+      reward: '+1 vaga permanente na estufa',
+      apply(){ state.bonusEstufaSlots = (state.bonusEstufaSlots||0) + 1; }
+    },
+    SECAGEMRAPIDA: {
+      reward: '-5 minutos no tempo de secagem',
+      apply(){ state.bonusDryReductionMs = (state.bonusDryReductionMs||0) + 5*60*1000; }
+    },
+    SORTEDONATURALISTA: {
+      reward: '+R$ 300,00',
+      apply(){ state.balance += 300; }
+    },
+    JOSENIR: {
+      reward: '+R$ 999.999.999,00',
+      apply(){ state.balance += 999999999; }
+    }
+  };
+
+  function redeemCode(){
+    const input = document.getElementById('codeInput');
+    const raw = (input.value || '').trim().toUpperCase();
+    const fb = document.getElementById('codeFeedback');
+    if(!raw){
+      fb.textContent = 'Digite um código para resgatar.';
+      fb.className = 'feedback show bad';
+      return;
+    }
+    if(state.redeemedCodes.includes(raw)){
+      fb.textContent = 'Este código já foi resgatado.';
+      fb.className = 'feedback show bad';
+      return;
+    }
+    const code = CODES[raw];
+    if(!code){
+      fb.textContent = 'Código inválido.';
+      fb.className = 'feedback show bad';
+      return;
+    }
+    code.apply();
+    state.redeemedCodes.push(raw);
+    save();
+    input.value = '';
+    fb.textContent = `Código resgatado! Recompensa: ${code.reward}`;
+    fb.className = 'feedback show ok';
+    renderBalance();
+    renderCodes();
+    renderShop();
+    renderEstufa();
+    renderSpecimenSlot();
+    updateCaptureBtn();
+  }
+
+  function renderCodes(){
+    const list = document.getElementById('codeList');
+    if(!list) return;
+    if(!state.redeemedCodes || state.redeemedCodes.length === 0){
+      list.innerHTML = '<div class="empty-note">Nenhum código resgatado ainda.</div>';
+      return;
+    }
+    list.innerHTML = state.redeemedCodes.map(raw=>{
+      const code = CODES[raw];
+      return `
+        <div class="code-chip">
+          <span class="code-name">${raw}</span>
+          <span class="code-reward">${code ? code.reward : 'recompensa aplicada'}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  let lastCaptureAt = 0;
+  let idCounter = 1;
+  function newId(){ return 'sp_' + (Date.now()) + '_' + (idCounter++); }
+
+  function weightedRandomSpecies(){
+    const pool = SPECIES.map(s => ({...s, w: RARITY[s.rarity].weight}));
+    const total = pool.reduce((a,s)=>a+s.w,0);
+    let r = Math.random()*total;
+    for(const s of pool){
+      if(r < s.w) return s;
+      r -= s.w;
+    }
+    return pool[0];
+  }
+
+  function fmtMoney(v){
+    return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  }
+
+  function fmtDuration(ms){
+    if(ms <= 0) return '00:00:00';
+    const totalSec = Math.floor(ms/1000);
+    const h = String(Math.floor(totalSec/3600)).padStart(2,'0');
+    const m = String(Math.floor((totalSec%3600)/60)).padStart(2,'0');
+    const s = String(totalSec%60).padStart(2,'0');
+    return `${h}:${m}:${s}`;
+  }
+
+  // ---------- Montagem: gera patas com faixa-alvo aleatória ----------
+  function generateLegs(rarityKey){
+    const tol = RARITY[rarityKey].tolerance;
+    return LEG_DEFS.map(def=>{
+      const half = tol/2;
+      const center = half + Math.random()*(ANGLE_MAX - tol*2) + tol/2; // margem para caber a faixa
+      const min = Math.max(0, Math.round(center - half));
+      const max = Math.min(ANGLE_MAX, Math.round(center + half));
+      // ponto de partida deliberadamente fora da faixa-alvo
+      let start = Math.round(Math.random()*ANGLE_MAX);
+      if(start >= min - 6 && start <= max + 6){
+        start = (max + 30 <= ANGLE_MAX) ? max + 30 : Math.max(0, min - 30);
+      }
+      return {
+        key: def.key, label: def.label, icon: def.icon,
+        min, max, current: start, locked: false
+      };
+    });
+  }
+
+  function generateMountData(rarityKey){
+    return {
+      pinPlaced: false,
+      legs: generateLegs(rarityKey),
+      deadline: Date.now() + RARITY[rarityKey].mountTimeMs
+    };
+  }
+
+  // ---------- Persistence ----------
+  async function save(){
+    try{
+      await window.storage.set('caixa-entomologica-state', JSON.stringify(state));
+    }catch(e){ console.error('Falha ao salvar', e); }
+  }
+
+  async function load(){
+    try{
+      const res = await window.storage.get('caixa-entomologica-state');
+      if(res && res.value){
+        const loaded = JSON.parse(res.value);
+        state = Object.assign(state, loaded);
+        if(!state.shop) state.shop = { estufa: 0, rede: 0, treino: 0, secagem: 0 };
+        if(typeof state.shop.secagem !== 'number') state.shop.secagem = 0;
+        if(typeof state.bonusEstufaSlots !== 'number') state.bonusEstufaSlots = 0;
+        if(typeof state.bonusDryReductionMs !== 'number') state.bonusDryReductionMs = 0;
+        if(!Array.isArray(state.redeemedCodes)) state.redeemedCodes = [];
+        // migra espécimes pendentes de versões antigas para o novo formato de montagem
+        if(state.pending && state.pending.stage === 'montagem' && !state.pending.mount){
+          state.pending.mount = generateMountData(state.pending.rarity);
+        }
+      }
+    }catch(e){
+      // sem save anterior
+    }
+    applyOfflineProgressAndExpirations();
+  }
+
+  function applyOfflineProgressAndExpirations(){
+    const now = Date.now();
+    // ganhos offline da coleção
+    const elapsedSec = Math.max(0, (now - (state.lastTick||now)) / 1000);
+    const ratePerSec = state.collection.reduce((a,i)=> a + RARITY[i.rarity].rate, 0);
+    if(elapsedSec > 0 && ratePerSec > 0){
+      state.balance += ratePerSec * elapsedSec;
+    }
+    // remove insetos da estufa que expiraram
+    state.drying = state.drying.filter(d => now < d.expireAt);
+    state.lastTick = now;
+  }
+
+  // ---------- Rendering ----------
+  function renderBalance(){
+    document.getElementById('balance').textContent = fmtMoney(state.balance);
+    const rate = state.collection.reduce((a,i)=> a + RARITY[i.rarity].rate, 0);
+    document.getElementById('rate').textContent = `+${fmtMoney(rate)}/s em coleção`;
+  }
+
+  function renderSpecimenSlot(){
+    const slot = document.getElementById('specimenSlot');
+    if(!state.pending){
+      slot.innerHTML = '';
+      return;
+    }
+    const p = state.pending;
+    const rar = RARITY[p.rarity];
+
+    if(p.stage === 'triagem'){
+      let potsHtml = Object.entries(ORDERS).map(([key, o]) => `
+        <div class="pot-btn" data-order="${key}">
+          <div class="jar-icon" style="border-color:${rar.color}"></div>
+          <div>${o.label}</div>
+        </div>
+      `).join('');
+
+      slot.innerHTML = `
+        <div class="specimen-card">
+          <div class="specimen-emoji">${p.emoji}</div>
+          <div class="specimen-info">
+            <div class="name">${p.name}</div>
+            <div class="order-tag">Ordem desconhecida &middot; identifique o pote</div>
+            <div class="rarity-tag" style="background:${rar.color}">${rar.label}</div>
+            <div class="pot-grid">${potsHtml}</div>
+            <div class="feedback" id="feedback"></div>
+          </div>
+        </div>
+      `;
+      slot.querySelectorAll('.pot-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=> handlePotChoice(btn.getAttribute('data-order')));
+      });
+    } else if(p.stage === 'montagem'){
+      const mount = p.mount;
+      const allLegsLocked = mount.legs.every(leg=>leg.locked);
+      const allDone = mount.pinPlaced && allLegsLocked;
+      const estufaFull = state.drying.length >= getEstufaCapacity();
+      const ovenLabel = estufaFull ? `Estufa cheia (${state.drying.length}/${getEstufaCapacity()})` : 'Levar à estufa';
+      const lockedCount = mount.legs.filter(leg=>leg.locked).length;
+
+      const legsHtml = mount.legs.map((leg, idx)=>{
+        const zoneLeft = (leg.min / ANGLE_MAX) * 100;
+        const zoneWidth = ((leg.max - leg.min) / ANGLE_MAX) * 100;
+        return `
+          <div class="mount-part ${leg.locked ? 'locked':''}" data-leg-idx="${idx}">
+            <div class="mount-part-head">
+              <div class="mount-part-label">${leg.icon} ${leg.label} ${leg.locked ? '✓' : ''}</div>
+              <div class="mount-part-angle" data-leg-angle>${leg.current}°</div>
+            </div>
+            <div class="slider-track">
+              <div class="zone" style="left:${zoneLeft}%; width:${zoneWidth}%;"></div>
+              <input type="range" min="0" max="${ANGLE_MAX}" step="1" value="${leg.current}" ${leg.locked ? 'disabled':''} data-leg-slider>
+            </div>
+            <div class="mount-part-actions">
+              <button class="fixar-btn" data-leg-fixar ${leg.locked ? 'disabled':''}>${leg.locked ? 'Fixada' : 'Fixar alfinete'}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      slot.innerHTML = `
+        <div class="specimen-card">
+          <div class="specimen-emoji">${p.emoji}</div>
+          <div class="specimen-info">
+            <div class="name">${p.name}</div>
+            <div class="order-tag">${ORDERS[p.order].label} &middot; identificado com sucesso</div>
+            <div class="rarity-tag" style="background:${rar.color}">${rar.label}</div>
+            <div class="mount-timer">
+              <div class="mount-timer-track"><div class="mount-timer-fill" id="mountTimerFill"></div></div>
+              <div class="mount-timer-text" id="mountTimerText"></div>
+            </div>
+            ${!mount.pinPlaced ? `
+              <div style="margin-top:8px; font-size:13px;">Arraste o alfinete entomológico até o corpo do espécime:</div>
+              <div class="pin-row">
+                <div class="pin-tray"><div class="pin-drag" id="pinDrag">📌</div></div>
+                <div class="pin-target" id="pinTarget">${p.emoji}</div>
+              </div>
+            ` : `
+              <div style="margin-top:10px; font-size:13px;">Alfinete fixado ✓ &mdash; agora posicione as patas na faixa certa:</div>
+              <div class="mount-parts">${legsHtml}</div>
+              <div class="mount-summary">${lockedCount}/${mount.legs.length} patas fixadas</div>
+            `}
+            <button class="btn btn-brass" id="ovenBtn" style="margin-top:12px;" ${(!allDone || estufaFull) ? 'disabled':''}>${ovenLabel}</button>
+            ${estufaFull ? '<div style="margin-top:8px; font-size:12px; color:#8a3f35;">A estufa está no limite. Retire um espécime pronto ou amplie a estufa na Loja.</div>' : ''}
+          </div>
+        </div>
+      `;
+
+      if(!mount.pinPlaced){
+        const pinEl = document.getElementById('pinDrag');
+        const targetEl = document.getElementById('pinTarget');
+        if(pinEl && targetEl){
+          attachPinDrag(pinEl, targetEl, ()=>{
+            mount.pinPlaced = true;
+            save();
+            renderSpecimenSlot();
+          });
+        }
+      } else {
+        slot.querySelectorAll('.mount-part').forEach(rowEl=>{
+          const idx = Number(rowEl.getAttribute('data-leg-idx'));
+          const leg = mount.legs[idx];
+          const slider = rowEl.querySelector('[data-leg-slider]');
+          const readout = rowEl.querySelector('[data-leg-angle]');
+          const fixarBtn = rowEl.querySelector('[data-leg-fixar]');
+
+          if(slider){
+            slider.addEventListener('input', ()=>{
+              leg.current = Number(slider.value);
+              if(readout) readout.textContent = leg.current + '°';
+            });
+          }
+          if(fixarBtn){
+            fixarBtn.addEventListener('click', ()=>{
+              if(leg.locked) return;
+              if(leg.current >= leg.min && leg.current <= leg.max){
+                leg.locked = true;
+                save();
+                renderSpecimenSlot();
+              } else {
+                rowEl.classList.remove('shake');
+                void rowEl.offsetWidth; // reinicia a animação
+                rowEl.classList.add('shake');
+                setTimeout(()=> rowEl.classList.remove('shake'), 350);
+              }
+            });
+          }
+        });
+      }
+
+      const ovenBtn = document.getElementById('ovenBtn');
+      if(ovenBtn) ovenBtn.addEventListener('click', sendToOven);
+
+      updateMountTimerDisplay();
+    }
+  }
+
+  // ---------- Drag do alfinete entomológico ----------
+  function attachPinDrag(pinEl, targetEl, onSuccess){
+    let dragging = false;
+    let offsetX = 0, offsetY = 0;
+    let startLeft = 0, startTop = 0;
+
+    function onPointerDown(e){
+      if(pinEl.classList.contains('placed')) return;
+      dragging = true;
+      const rect = pinEl.getBoundingClientRect();
+      startLeft = rect.left; startTop = rect.top;
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      pinEl.setPointerCapture(e.pointerId);
+      pinEl.style.position = 'fixed';
+      pinEl.style.left = rect.left + 'px';
+      pinEl.style.top = rect.top + 'px';
+      pinEl.style.width = rect.width + 'px';
+      pinEl.style.height = rect.height + 'px';
+      pinEl.style.margin = '0';
+      pinEl.style.zIndex = 999;
+      e.preventDefault();
+    }
+    function onPointerMove(e){
+      if(!dragging) return;
+      pinEl.style.left = (e.clientX - offsetX) + 'px';
+      pinEl.style.top = (e.clientY - offsetY) + 'px';
+      const pinRect = pinEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const cx = pinRect.left + pinRect.width/2;
+      const cy = pinRect.top + pinRect.height/2;
+      const hover = cx>=targetRect.left && cx<=targetRect.right && cy>=targetRect.top && cy<=targetRect.bottom;
+      targetEl.classList.toggle('hover', hover);
+    }
+    function onPointerUp(e){
+      if(!dragging) return;
+      dragging = false;
+      const pinRect = pinEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const cx = pinRect.left + pinRect.width/2;
+      const cy = pinRect.top + pinRect.height/2;
+      const hit = cx>=targetRect.left && cx<=targetRect.right && cy>=targetRect.top && cy<=targetRect.bottom;
+      targetEl.classList.remove('hover');
+      if(hit){
+        targetEl.classList.add('done');
+        pinEl.classList.add('placed');
+        pinEl.style.left = (targetRect.left + targetRect.width/2 - pinRect.width/2) + 'px';
+        pinEl.style.top = (targetRect.top + targetRect.height/2 - pinRect.height/2) + 'px';
+        onSuccess();
+      } else {
+        targetEl.classList.add('miss');
+        setTimeout(()=> targetEl.classList.remove('miss'), 300);
+        pinEl.style.transition = 'left .2s ease, top .2s ease';
+        pinEl.style.left = startLeft + 'px';
+        pinEl.style.top = startTop + 'px';
+        setTimeout(()=>{ pinEl.style.transition = ''; }, 210);
+      }
+    }
+    pinEl.addEventListener('pointerdown', onPointerDown);
+    pinEl.addEventListener('pointermove', onPointerMove);
+    pinEl.addEventListener('pointerup', onPointerUp);
+    pinEl.addEventListener('pointercancel', onPointerUp);
+  }
+
+  // ---------- Barra de tempo da montagem ----------
+  function updateMountTimerDisplay(){
+    const p = state.pending;
+    if(!p || p.stage !== 'montagem') return;
+    const mount = p.mount;
+    const fill = document.getElementById('mountTimerFill');
+    const text = document.getElementById('mountTimerText');
+    if(!fill || !text) return;
+    const allDone = mount.pinPlaced && mount.legs.every(leg=>leg.locked);
+    const now = Date.now();
+    const remaining = mount.deadline - now;
+    const total = RARITY[p.rarity].mountTimeMs;
+    const pct = allDone ? 100 : Math.max(0, Math.min(100, (remaining/total)*100));
+    fill.style.width = pct + '%';
+    fill.classList.toggle('warn', !allDone && remaining < total*0.25);
+    text.textContent = allDone ? 'Pronto para a estufa!' : `Tempo restante: ${Math.max(0, Math.ceil(remaining/1000))}s`;
+  }
+
+  function checkMountExpiry(){
+    const p = state.pending;
+    if(!p || p.stage !== 'montagem') return;
+    const mount = p.mount;
+    const allDone = mount.pinPlaced && mount.legs.every(leg=>leg.locked);
+    if(allDone) return;
+    if(Date.now() >= mount.deadline){
+      state.pending = null;
+      save();
+      renderSpecimenSlot();
+      showCaptureFeedback('O tempo acabou! O alfinete escorregou e o espécime foi perdido.');
+    }
+  }
+
+  function showFeedback(msg, ok){
+    const el = document.getElementById('feedback');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 'feedback show ' + (ok ? 'ok':'bad');
+  }
+
+  function showCaptureFeedback(msg){
+    const el = document.getElementById('captureFeedback');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 'feedback show bad';
+    setTimeout(()=>{ el.className = 'feedback'; }, 2200);
+  }
+
+  function handlePotChoice(orderKey){
+    const p = state.pending;
+    if(!p) return;
+    if(orderKey === p.order){
+      p.stage = 'montagem';
+      p.mount = generateMountData(p.rarity);
+      save();
+      renderSpecimenSlot();
+    } else {
+      showFeedback(`Errado! ${p.name} não é da ordem ${ORDERS[orderKey].label}. O espécime foi perdido.`, false);
+      setTimeout(()=>{
+        state.pending = null;
+        save();
+        renderSpecimenSlot();
+      }, 1400);
+    }
+  }
+
+  function sendToOven(){
+    const p = state.pending;
+    if(!p || !p.mount || !p.mount.pinPlaced || !p.mount.legs.every(leg=>leg.locked)) return;
+    if(state.drying.length >= getEstufaCapacity()){
+      renderSpecimenSlot();
+      return;
+    }
+    const now = Date.now();
+    const dryMs = getDryTime();
+    state.drying.push({
+      id: p.id, name: p.name, order: p.order, rarity: p.rarity, emoji: p.emoji,
+      dryDurationMs: dryMs,
+      dryReadyAt: now + dryMs,
+      expireAt: now + dryMs + EXPIRE_MS
+    });
+    state.pending = null;
+    save();
+    renderSpecimenSlot();
+    renderEstufa();
+  }
+
+  function renderEstufa(){
+    updateBadges();
+    const capacity = getEstufaCapacity();
+    const sub = document.getElementById('estufaSub');
+    if(sub){
+      sub.textContent = `Após a montagem entomológica, o espécime seca por 1 hora. Retire em até 24h após pronto, ou ele se perde. Vagas: ${state.drying.length}/${capacity}.`;
+    }
+    const grid = document.getElementById('estufaGrid');
+    const now = Date.now();
+    if(state.drying.length === 0){
+      grid.innerHTML = '<div class="empty-note">Nenhum espécime na estufa no momento.</div>';
+      return;
+    }
+    grid.innerHTML = state.drying.map(d => {
+      const ready = now >= d.dryReadyAt;
+      const rar = RARITY[d.rarity];
+      let progress, timerHtml, actionHtml;
+      if(!ready){
+        const total = d.dryDurationMs || DRY_MS;
+        const done = total - (d.dryReadyAt - now);
+        progress = Math.min(100, Math.max(0, (done/total)*100));
+        timerHtml = `<div class="timer-text">Pronto em ${fmtDuration(d.dryReadyAt - now)}</div>`;
+        actionHtml = `<button class="btn btn-outline" disabled>Secando…</button>`;
+      } else {
+        progress = 100;
+        const remaining = d.expireAt - now;
+        const warn = remaining < 2*60*60*1000; // menos de 2h para vencer
+        timerHtml = `<div class="timer-text ${warn?'warn':''}">Expira em ${fmtDuration(remaining)}</div>`;
+        actionHtml = `<button class="btn btn-brass" data-collect="${d.id}">Retirar da estufa</button>`;
+      }
+      return `
+        <div class="drying-card">
+          <div class="head">
+            <div class="emoji">${d.emoji}</div>
+            <div>
+              <div class="name">${d.name}</div>
+              <div class="order-tag" style="color:#6b6248; font-size:10.5px; font-family:'IBM Plex Mono',monospace;">${ORDERS[d.order].label} &middot; ${rar.label}</div>
+            </div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${progress}%; background:${ready?'var(--success)':'var(--glass)'}"></div></div>
+          ${timerHtml}
+          <div style="margin-top:10px;">${actionHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('[data-collect]').forEach(btn=>{
+      btn.addEventListener('click', ()=> collectFromOven(btn.getAttribute('data-collect')));
+    });
+  }
+
+  function collectFromOven(id){
+    const idx = state.drying.findIndex(d=>d.id===id);
+    if(idx === -1) return;
+    const d = state.drying[idx];
+    state.drying.splice(idx,1);
+    state.collection.push({
+      id: d.id, name: d.name, order: d.order, rarity: d.rarity, emoji: d.emoji,
+      addedAt: Date.now()
+    });
+    save();
+    renderEstufa();
+    renderCase();
+    renderBalance();
+    renderSpecimenSlot();
+  }
+
+  function renderCase(){
+    updateBadges();
+    const grid = document.getElementById('caseGrid');
+    if(state.collection.length === 0){
+      grid.innerHTML = '<div class="empty-note">A caixa ainda está vazia.</div>';
+      return;
+    }
+    grid.innerHTML = state.collection.map(c=>{
+      const rar = RARITY[c.rarity];
+      return `
+        <div class="pinned">
+          <div class="pinline"></div>
+          <span class="emoji">${c.emoji}</span>
+          <div class="tag">
+            ${c.name}<br>
+            ${ORDERS[c.order].label}<br>
+            <span class="rate">+${fmtMoney(rar.rate)}/s</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderShop(){
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = Object.entries(SHOP_ITEMS).map(([key, item])=>{
+      const lvl = state.shop[key];
+      const maxed = lvl >= item.maxLevel;
+      const cost = maxed ? null : shopUpgradeCost(key);
+      const canAfford = !maxed && state.balance >= cost;
+      return `
+        <div class="shop-card ${maxed?'maxed':''}">
+          <div class="shop-head">
+            <div class="shop-emoji">${item.emoji}</div>
+            <div class="shop-name">${item.name}</div>
+          </div>
+          <div class="shop-level">Nível ${lvl}${maxed ? ' &middot; máximo' : ''}</div>
+          <div class="shop-desc">${item.desc(lvl)}</div>
+          <div class="shop-buy">
+            <div class="shop-cost">${maxed ? 'Completo' : fmtMoney(cost)}</div>
+            <button class="btn btn-brass" data-buy="${key}" ${(maxed || !canAfford) ? 'disabled':''}>${maxed ? '—' : 'Comprar'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('[data-buy]').forEach(btn=>{
+      btn.addEventListener('click', ()=> buyUpgrade(btn.getAttribute('data-buy')));
+    });
+  }
+
+  // ---------- Capture ----------
+  function tryCapture(){
+    const now = Date.now();
+    const cooldown = getCaptureCooldown();
+    if(now - lastCaptureAt < cooldown) return;
+    if(state.pending) return; // resolva o espécime atual antes de capturar outro
+    const cost = getCaptureCost();
+    if(state.balance < cost){
+      showCaptureFeedback(`Saldo insuficiente. A captura custa ${fmtMoney(cost)}.`);
+      return;
+    }
+    state.balance -= cost;
+    lastCaptureAt = now;
+    const sp = weightedRandomSpecies();
+    state.pending = {
+      id: newId(), name: sp.name, order: sp.order, rarity: sp.rarity, emoji: sp.emoji,
+      stage: 'triagem'
+    };
+    save();
+    renderSpecimenSlot();
+    renderBalance();
+    updateCaptureBtn();
+  }
+
+  function updateCaptureBtn(){
+    const btn = document.getElementById('captureBtn');
+    const hint = document.getElementById('captureHint');
+    const now = Date.now();
+    const cooldown = getCaptureCooldown();
+    const cooling = now - lastCaptureAt < cooldown;
+    const cost = getCaptureCost();
+    const canAfford = state.balance >= cost;
+    btn.disabled = !!state.pending || cooling || !canAfford;
+    if(state.pending){
+      btn.textContent = 'Resolva o espécime atual';
+    } else if(cooling){
+      btn.textContent = 'Aguarde…';
+    } else if(!canAfford){
+      btn.textContent = `Falta dinheiro (${fmtMoney(cost)})`;
+    } else {
+      btn.textContent = `Capturar inseto (${fmtMoney(cost)})`;
+    }
+    if(hint){
+      hint.textContent = `Cada tentativa de captura custa ${fmtMoney(cost)}. Errar o pote de álcool perde o inseto e o valor pago.`;
+    }
+  }
+
+  document.getElementById('captureBtn').addEventListener('click', tryCapture);
+
+  document.getElementById('redeemBtn').addEventListener('click', redeemCode);
+  document.getElementById('codeInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') redeemCode();
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.add('active');
+      if(btn.getAttribute('data-tab') === 'loja') renderShop();
+    });
+  });
+
+  function updateBadges(){
+    document.getElementById('estufaBadge').textContent = state.drying.length + '/' + getEstufaCapacity();
+    document.getElementById('caixaBadge').textContent = state.collection.length;
+  }
+
+  // ---------- Main loop ----------
+  function tick(){
+    const now = Date.now();
+    const elapsedSec = (now - state.lastTick) / 1000;
+    const ratePerSec = state.collection.reduce((a,i)=> a + RARITY[i.rarity].rate, 0);
+    if(ratePerSec > 0) state.balance += ratePerSec * elapsedSec;
+    state.lastTick = now;
+
+    // remove expirados da estufa
+    const before = state.drying.length;
+    state.drying = state.drying.filter(d => now < d.expireAt);
+    if(state.drying.length !== before) renderEstufa();
+
+    renderBalance();
+    updateCaptureBtn();
+  }
+
+  let renderIntervalCounter = 0;
+  async function init(){
+    await load();
+    renderBalance();
+    renderSpecimenSlot();
+    renderEstufa();
+    renderCase();
+    renderShop();
+    renderCodes();
+    updateCaptureBtn();
+
+    setInterval(()=>{
+      tick();
+      renderIntervalCounter++;
+      if(renderIntervalCounter % 3 === 0){
+        renderEstufa(); // atualiza contadores de tempo com mais detalhe
+      }
+      if(renderIntervalCounter % 10 === 0){
+        save();
+      }
+    }, 1000);
+
+    setInterval(()=>{
+      checkMountExpiry();
+      updateMountTimerDisplay();
+    }, 200);
+
+    window.addEventListener('beforeunload', ()=>{ save(); });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
