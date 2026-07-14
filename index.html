@@ -724,15 +724,15 @@
   // ---------- Persistence ----------
   async function save(){
     try{
-      await window.storage.set('caixa-entomologica-state', JSON.stringify(state));
+      localStorage.setItem('caixa-entomologica-state', JSON.stringify(state));
     }catch(e){ console.error('Falha ao salvar', e); }
   }
 
   async function load(){
     try{
-      const res = await window.storage.get('caixa-entomologica-state');
-      if(res && res.value){
-        const loaded = JSON.parse(res.value);
+      const raw = localStorage.getItem('caixa-entomologica-state');
+      if(raw){
+        const loaded = JSON.parse(raw);
         state = Object.assign(state, loaded);
         if(!state.shop) state.shop = { estufa: 0, rede: 0, treino: 0, secagem: 0 };
         if(typeof state.shop.secagem !== 'number') state.shop.secagem = 0;
